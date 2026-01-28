@@ -1,0 +1,1 @@
+This application is a clone of calendar.google.com with an added conversational AI chat feature. The AI chat is capable of performing basic scheduling tasks such as creating events, deleting events, etc.

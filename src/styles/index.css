@@ -1,0 +1,14 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --google-blue: #1a73e8;
+  --google-gray: #70757a;
+  --google-border: #dadce0;
+}
+
+body {
+  @apply text-gray-900 antialiased;
+  font-family: 'Google Sans', Roboto, Arial, sans-serif;
+}
