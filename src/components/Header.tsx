@@ -10,6 +10,7 @@ const Header = () => {
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [imageError, setImageError] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
@@ -21,6 +22,10 @@ const Header = () => {
     (event.description && event.description.toLowerCase().includes(searchQuery.toLowerCase())) ||
     (event.location && event.location.toLowerCase().includes(searchQuery.toLowerCase()))
   );
+
+  useEffect(() => {
+    setImageError(false);
+  }, [user?.picture]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -259,10 +264,15 @@ const Header = () => {
               onClick={() => isAuthenticated && setIsProfileOpen(!isProfileOpen)}
               className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden transition-transform active:scale-95 ${!isAuthenticated ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:ring-2 ring-blue-300 ring-offset-2'}`}
             >
-              {user?.picture ? (
-                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+              {user?.picture && !imageError ? (
+                <img 
+                  src={user.picture} 
+                  alt="" 
+                  className="w-full h-full object-cover"
+                  onError={() => setImageError(true)}
+                />
               ) : (
-                user?.name?.charAt(0) || <User className="w-4 h-4" />
+                user?.given_name?.charAt(0) || user?.name?.charAt(0) || <User className="w-4 h-4" />
               )}
             </button>
 
@@ -277,10 +287,15 @@ const Header = () => {
                   {user ? (
                     <div className="px-6 pb-4 border-b border-gray-50 flex flex-col items-center text-center">
                       <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-semibold mb-3 overflow-hidden shadow-inner">
-                        {user.picture ? (
-                          <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                        {user.picture && !imageError ? (
+                          <img 
+                            src={user.picture} 
+                            alt="" 
+                            className="w-full h-full object-cover"
+                            onError={() => setImageError(true)}
+                          />
                         ) : (
-                          user.name.charAt(0)
+                          user.given_name?.charAt(0) || user.name.charAt(0)
                         )}
                       </div>
                       <h3 className="text-lg font-bold text-gray-900 leading-tight">{user.name}</h3>
