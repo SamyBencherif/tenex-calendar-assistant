@@ -21,9 +21,12 @@ export const CalendarProvider = ({ children }) => {
   const [view, setView] = useState('week');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [tokenClient, setTokenClient] = useState(null);
+  const [isGapiLoaded, setIsGapiLoaded] = useState(false);
+  const [isGisLoaded, setIsGisLoaded] = useState(false);
 
   const fetchEvents = useCallback(async () => {
     try {
+      console.log('Fetching events from Google Calendar...');
       const apiEvents = await listEvents();
       const formattedEvents = apiEvents.map(event => ({
         id: event.id,
@@ -34,21 +37,45 @@ export const CalendarProvider = ({ children }) => {
         color: 'bg-blue-500' // Default color
       }));
       setEvents(formattedEvents);
+      console.log('Events fetched successfully:', formattedEvents.length);
     } catch (error) {
       console.error('Failed to fetch events:', error);
     }
   }, []);
 
+  // Poll for script availability
+  useEffect(() => {
+    const checkScripts = setInterval(() => {
+      if (typeof gapi !== 'undefined' && !isGapiLoaded) {
+        console.log('GAPI script detected');
+        setIsGapiLoaded(true);
+      }
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.oauth2 && !isGisLoaded) {
+        console.log('Google Identity Services (GIS) script detected');
+        setIsGisLoaded(true);
+      }
+    }, 500);
+
+    return () => clearInterval(checkScripts);
+  }, [isGapiLoaded, isGisLoaded]);
+
   useEffect(() => {
     const initializeGoogleApi = async () => {
+      if (!isGapiLoaded || !isGisLoaded) return;
+
       try {
+        console.log('Initializing GAPI client...');
         await initGapi();
+        console.log('GAPI client initialized');
         
+        console.log('Initializing GIS token client...');
         const client = google.accounts.oauth2.initTokenClient({
           client_id: CLIENT_ID,
           scope: SCOPES,
           callback: async (response) => {
+            console.log('GIS callback received:', response);
             if (response.error !== undefined) {
+              console.error('GIS error:', response);
               throw response;
             }
             setIsAuthenticated(true);
@@ -56,36 +83,43 @@ export const CalendarProvider = ({ children }) => {
           },
         });
         setTokenClient(client);
+        console.log('GIS token client initialized');
 
-        // Check if we have a token already (e.g. from session)
+        // Check if we have a token already
         const token = gapi.client.getToken();
         if (token) {
+          console.log('Existing token found');
           setIsAuthenticated(true);
           await fetchEvents();
         }
       } catch (error) {
-        console.error('Error initializing Google API:', error);
+        console.error('Error during Google API initialization:', error);
       }
     };
 
-    if (typeof gapi !== 'undefined' && typeof google !== 'undefined') {
-      initializeGoogleApi();
-    }
-  }, [fetchEvents]);
+    initializeGoogleApi();
+  }, [isGapiLoaded, isGisLoaded, fetchEvents]);
 
   const signIn = () => {
+    console.log('Sign In button clicked');
     if (tokenClient) {
+      console.log('Requesting access token...');
       tokenClient.requestAccessToken({ prompt: 'consent' });
+    } else {
+      console.error('Token client not initialized yet');
+      alert('Google Calendar integration is still loading. Please try again in a moment.');
     }
   };
 
   const signOut = () => {
+    console.log('Sign Out button clicked');
     const token = gapi.client.getToken();
     if (token !== null) {
       google.accounts.oauth2.revoke(token.access_token);
       gapi.client.setToken(null);
       setIsAuthenticated(false);
       setEvents([]);
+      console.log('Signed out successfully');
     }
   };
 
