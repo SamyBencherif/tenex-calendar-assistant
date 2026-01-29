@@ -46,6 +46,7 @@ export const createEvent = async (event) => {
       resource: {
         summary: event.title,
         description: event.description,
+        location: event.location,
         start: {
           dateTime: event.start,
         },
@@ -69,6 +70,7 @@ export const updateEvent = async (id, event) => {
       resource: {
         summary: event.title,
         description: event.description,
+        location: event.location,
         start: {
           dateTime: event.start,
         },

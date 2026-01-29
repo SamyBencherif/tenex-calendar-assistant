@@ -3,7 +3,7 @@ import { addHours, startOfToday } from 'date-fns';
 import { initGapi, listEvents, createEvent as apiCreateEvent, updateEvent as apiUpdateEvent, deleteEvent as apiDeleteEvent } from '../lib/googleCalendar';
 import { setCookie, getCookie, eraseCookie } from '../lib/cookies';
 
-const CalendarContext = createContext();
+const CalendarContext = createContext<any>(null);
 
 export const useCalendar = () => {
   const context = useContext(CalendarContext);
@@ -37,6 +37,7 @@ export const CalendarProvider = ({ children }) => {
         start: event.start.dateTime || event.start.date,
         end: event.end.dateTime || event.end.date,
         description: event.description,
+        location: event.location,
         isAllDay: !!event.start.date,
         color: 'bg-blue-500' // Default color
       }));
@@ -158,6 +159,7 @@ export const CalendarProvider = ({ children }) => {
         start: createdEvent.start.dateTime || createdEvent.start.date,
         end: createdEvent.end.dateTime || createdEvent.end.date,
         description: createdEvent.description,
+        location: createdEvent.location,
         isAllDay: !!createdEvent.start.date,
         color: event.color || 'bg-blue-500'
       };
@@ -181,6 +183,7 @@ export const CalendarProvider = ({ children }) => {
         start: updatedEvent.start.dateTime || updatedEvent.start.date,
         end: updatedEvent.end.dateTime || updatedEvent.end.date,
         description: updatedEvent.description,
+        location: updatedEvent.location,
         isAllDay: !!updatedEvent.start.date,
       } : evt));
     } catch (error) {
