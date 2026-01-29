@@ -3,13 +3,12 @@ import { Plus, ChevronDown } from 'lucide-react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay } from 'date-fns';
 import { useCalendar } from '../context/CalendarContext';
 import CreateEventModal from './CreateEventModal';
+import { motion } from 'framer-motion';
 
 const Sidebar = () => {
-  const { currentDate, setCurrentDate, isSidebarOpen } = useCalendar() as any;
+  const { currentDate, setCurrentDate } = useCalendar() as any;
   const [showCreateModal, setShowCreateModal] = useState(false);
   
-  if (!isSidebarOpen) return null;
-
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart);
@@ -21,7 +20,13 @@ const Sidebar = () => {
   });
 
   return (
-    <aside className="w-64 border-r p-4 hidden md:flex flex-col gap-8 bg-white shrink-0">
+    <motion.aside 
+      initial={{ width: 0, opacity: 0, x: -20 }}
+      animate={{ width: 256, opacity: 1, x: 0 }}
+      exit={{ width: 0, opacity: 0, x: -20 }}
+      transition={{ duration: 0.3, ease: "easeInOut" }}
+      className="border-r p-4 hidden md:flex flex-col gap-8 bg-white shrink-0 overflow-hidden whitespace-nowrap"
+    >
       <button 
         onClick={() => setShowCreateModal(true)}
         className="flex items-center gap-2 px-4 py-3 rounded-full shadow-md border hover:shadow-lg transition-shadow w-fit"
@@ -74,7 +79,7 @@ const Sidebar = () => {
       {showCreateModal && (
         <CreateEventModal onClose={() => setShowCreateModal(false)} />
       )}
-    </aside>
+    </motion.aside>
   );
 };
 
