@@ -12,6 +12,7 @@
   "dependencies": {
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "date-fns-tz": "^3.2.0",
     "framer-motion": "^12.29.2",
     "lucide-react": "^0.474.0",
     "openai": "^4.82.0",

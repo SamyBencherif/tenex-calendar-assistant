@@ -215,8 +215,8 @@ const Header = () => {
                       }}
                       className="w-full border rounded px-2 py-1.5 text-sm outline-none hover:bg-gray-50 cursor-pointer"
                     >
-                      {timezones.map(tz => (
-                        <option key={tz.value} value={tz.value}>
+                      {timezones.map((tz, i) => (
+                        <option key={`${tz.value}-${i}`} value={tz.value}>
                           {tz.label} ({tz.value})
                         </option>
                       ))}

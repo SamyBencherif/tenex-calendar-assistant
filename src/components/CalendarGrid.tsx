@@ -1,9 +1,10 @@
 import React from 'react';
-import { format, startOfWeek, addDays, eachDayOfInterval, startOfDay, endOfDay, isSameDay, isWithinInterval, parseISO, startOfMonth, endOfMonth, endOfWeek, isSameMonth } from 'date-fns';
+import { format, startOfWeek, addDays, eachDayOfInterval, startOfDay, endOfDay, isSameDay, parseISO, startOfMonth, endOfMonth, endOfWeek, isSameMonth } from 'date-fns';
+import { toZonedTime, format as formatTz } from 'date-fns-tz';
 import { useCalendar } from '../context/CalendarContext';
 
 const CalendarGrid = () => {
-  const { currentDate, events, view } = useCalendar() as any;
+  const { currentDate, events, view, timezone } = useCalendar() as any;
 
   const startDate = view === 'day' ? startOfDay(currentDate) : startOfWeek(currentDate);
   const endDate = view === 'day' ? endOfDay(currentDate) : addDays(startDate, 6);
@@ -22,7 +23,7 @@ const CalendarGrid = () => {
 
   const getEventsForDay = (day, allDay = false) => {
     return events.filter(event => {
-      const eventStart = parseISO(event.start);
+      const eventStart = toZonedTime(parseISO(event.start), timezone);
       const isSameDayEvent = isSameDay(eventStart, day);
       return isSameDayEvent && (allDay ? event.isAllDay : !event.isAllDay);
     });
@@ -45,14 +46,17 @@ const CalendarGrid = () => {
                 {format(day, 'd')}
               </div>
               <div className="flex flex-col gap-1 overflow-y-auto max-h-[80px]">
-                {getEventsForDay(day, true).concat(getEventsForDay(day, false)).map(event => (
-                  <div
-                    key={event.id}
-                    className={`rounded px-1.5 py-0.5 text-[10px] text-white truncate shadow-sm shrink-0 ${event.color || 'bg-blue-500'}`}
-                  >
-                    {event.isAllDay ? event.title : `${format(parseISO(event.start), 'HH:mm')} ${event.title}`}
-                  </div>
-                ))}
+                {getEventsForDay(day, true).concat(getEventsForDay(day, false)).map(event => {
+                  const eventStart = toZonedTime(parseISO(event.start), timezone);
+                  return (
+                    <div
+                      key={event.id}
+                      className={`rounded px-1.5 py-0.5 text-[10px] text-white truncate shadow-sm shrink-0 ${event.color || 'bg-blue-500'}`}
+                    >
+                      {event.isAllDay ? event.title : `${formatTz(eventStart, 'HH:mm', { timeZone: timezone })} ${event.title}`}
+                    </div>
+                  );
+                })}
               </div>
             </div>
           ))}
@@ -114,7 +118,7 @@ const CalendarGrid = () => {
           <div className="w-16 shrink-0 flex flex-col">
             {hours.map(hour => (
               <div key={hour} className="h-12 border-r text-[10px] text-gray-500 pr-2 text-right -mt-2">
-                {hour === 0 ? '' : format(new Date().setHours(hour, 0), 'h a')}
+                {hour === 0 ? '' : formatTz(toZonedTime(new Date().setHours(hour, 0, 0, 0), timezone), 'h a', { timeZone: timezone })}
               </div>
             ))}
           </div>
@@ -129,8 +133,8 @@ const CalendarGrid = () => {
                 
                 {/* Events for this day */}
                 {getEventsForDay(day).map((event, eventIdx) => {
-                  const start = parseISO(event.start);
-                  const end = parseISO(event.end);
+                  const start = toZonedTime(parseISO(event.start), timezone);
+                  const end = toZonedTime(parseISO(event.end), timezone);
                   const top = (start.getHours() * 48) + (start.getMinutes() / 60 * 48);
                   const duration = (end.getTime() - start.getTime()) / (1000 * 60 * 60);
                   const height = duration * 48;
@@ -143,7 +147,7 @@ const CalendarGrid = () => {
                     >
                       <div className="font-bold truncate">{event.title}</div>
                       <div className="truncate">
-                        {format(start, 'h:mm a')} - {format(end, 'h:mm a')}
+                        {formatTz(start, 'h:mm a', { timeZone: timezone })} - {formatTz(end, 'h:mm a', { timeZone: timezone })}
                       </div>
                     </div>
                   );
