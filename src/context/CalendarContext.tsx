@@ -36,6 +36,7 @@ export const CalendarProvider = ({ children }) => {
         start: event.start.dateTime || event.start.date,
         end: event.end.dateTime || event.end.date,
         description: event.description,
+        isAllDay: !!event.start.date,
         color: 'bg-blue-500' // Default color
       }));
       setEvents(formattedEvents);
@@ -156,6 +157,7 @@ export const CalendarProvider = ({ children }) => {
         start: createdEvent.start.dateTime || createdEvent.start.date,
         end: createdEvent.end.dateTime || createdEvent.end.date,
         description: createdEvent.description,
+        isAllDay: !!createdEvent.start.date,
         color: event.color || 'bg-blue-500'
       };
       setEvents(prev => [...prev, newEvent]);
@@ -178,6 +180,7 @@ export const CalendarProvider = ({ children }) => {
         start: updatedEvent.start.dateTime || updatedEvent.start.date,
         end: updatedEvent.end.dateTime || updatedEvent.end.date,
         description: updatedEvent.description,
+        isAllDay: !!updatedEvent.start.date,
       } : evt));
     } catch (error) {
       console.error('Error updating event:', error);

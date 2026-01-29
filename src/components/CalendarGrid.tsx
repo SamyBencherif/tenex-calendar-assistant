@@ -3,7 +3,7 @@ import { format, startOfWeek, addDays, eachDayOfInterval, startOfDay, endOfDay, 
 import { useCalendar } from '../context/CalendarContext';
 
 const CalendarGrid = () => {
-  const { currentDate, events, view } = useCalendar();
+  const { currentDate, events, view } = useCalendar() as any;
 
   const startDate = startOfWeek(currentDate);
   const weekDays = eachDayOfInterval({
@@ -13,32 +13,57 @@ const CalendarGrid = () => {
 
   const hours = Array.from({ length: 24 }, (_, i) => i);
 
-  const getEventsForDay = (day) => {
+  const getEventsForDay = (day, allDay = false) => {
     return events.filter(event => {
       const eventStart = parseISO(event.start);
-      return isSameDay(eventStart, day);
+      const isSameDayEvent = isSameDay(eventStart, day);
+      return isSameDayEvent && (allDay ? event.isAllDay : !event.isAllDay);
     });
   };
 
   return (
     <div className="flex-1 flex flex-col bg-white overflow-hidden">
-      {/* Header with day names */}
-      <div className="flex border-b">
-        <div className="w-16 border-r shrink-0" />
-        <div className="flex-1 grid grid-cols-7">
-          {weekDays.map((day, i) => (
-            <div key={i} className="py-2 border-r last:border-r-0 flex flex-col items-center">
-              <span className="text-[11px] font-medium text-gray-500 uppercase">
-                {format(day, 'EEE')}
-              </span>
-              <span className={`
-                text-2xl mt-1 w-10 h-10 flex items-center justify-center rounded-full
-                ${isSameDay(day, new Date()) ? 'bg-blue-600 text-white' : 'text-gray-700'}
-              `}>
-                {format(day, 'd')}
-              </span>
-            </div>
-          ))}
+      {/* Header with day names and all-day events */}
+      <div className="flex border-b flex-col">
+        <div className="flex">
+          <div className="w-16 border-r shrink-0" />
+          <div className="flex-1 grid grid-cols-7">
+            {weekDays.map((day, i) => (
+              <div key={i} className="py-2 border-r last:border-r-0 flex flex-col items-center">
+                <span className="text-[11px] font-medium text-gray-500 uppercase">
+                  {format(day, 'EEE')}
+                </span>
+                <span className={`
+                  text-2xl mt-1 w-10 h-10 flex items-center justify-center rounded-full
+                  ${isSameDay(day, new Date()) ? 'bg-blue-600 text-white' : 'text-gray-700'}
+                `}>
+                  {format(day, 'd')}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* All-day events section */}
+        <div className="flex border-t">
+          <div className="w-16 border-r shrink-0 flex items-end justify-end pb-1 pr-2">
+            <span className="text-[10px] text-gray-500">all-day</span>
+          </div>
+          <div className="flex-1 grid grid-cols-7">
+            {weekDays.map((day, i) => (
+              <div key={i} className="min-h-[24px] border-r last:border-r-0 p-1 flex flex-col gap-1">
+                {getEventsForDay(day, true).map(event => (
+                  <div
+                    key={event.id}
+                    className={`rounded px-2 py-0.5 text-[10px] text-white truncate shadow-sm ${event.color || 'bg-blue-500'}`}
+                    style={{ height: '20px' }}
+                  >
+                    {event.title}
+                  </div>
+                ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
 
