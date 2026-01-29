@@ -7,8 +7,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 const Header = () => {
   const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen, events } = useCalendar() as any;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
+  const helpRef = useRef<HTMLDivElement>(null);
 
   const filteredEvents = events.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -20,6 +22,9 @@ const Header = () => {
     const handleClickOutside = (event: MouseEvent) => {
       if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
         setIsSearchOpen(false);
+      }
+      if (helpRef.current && !helpRef.current.contains(event.target as Node)) {
+        setIsHelpOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -138,9 +143,34 @@ const Header = () => {
               </button>
             )}
           </AnimatePresence>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <HelpCircle className="w-5 h-5 text-gray-600" />
-          </button>
+          <div className="relative" ref={helpRef}>
+            <button 
+              onClick={() => setIsHelpOpen(!isHelpOpen)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <HelpCircle className="w-5 h-5 text-gray-600" />
+            </button>
+            <AnimatePresence>
+              {isHelpOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full right-0 mt-2 w-48 bg-white rounded-lg shadow-xl border py-2 z-[120]"
+                >
+                  <a
+                    href="https://support.google.com/a/users/answer/9247501?visit_id=01769699727970-8946899745036436065&p=calendar_training&rd=1"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    onClick={() => setIsHelpOpen(false)}
+                    className="w-full flex items-center px-4 py-2 hover:bg-gray-100 transition-colors text-sm text-gray-700"
+                  >
+                    Training
+                  </a>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Settings className="w-5 h-5 text-gray-600" />
           </button>
