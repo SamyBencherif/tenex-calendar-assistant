@@ -1,10 +1,10 @@
 import React from 'react';
 import { Menu, ChevronLeft, ChevronRight, Search, HelpCircle, Settings, Grid, LogIn, LogOut } from 'lucide-react';
-import { format, addMonths, subMonths } from 'date-fns';
+import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import { useCalendar } from '../context/CalendarContext';
 
 const Header = () => {
-  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut } = useCalendar();
+  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut } = useCalendar() as any;
 
   return (
     <header className="h-16 border-b flex items-center justify-between px-4 shrink-0 bg-white">
@@ -26,13 +26,21 @@ const Header = () => {
           </button>
           <div className="flex items-center gap-0.5 ml-2">
             <button 
-              onClick={() => setCurrentDate(prev => subMonths(prev, 1))}
+              onClick={() => {
+                if (view === 'month') setCurrentDate(prev => subMonths(prev, 1));
+                else if (view === 'week') setCurrentDate(prev => subWeeks(prev, 1));
+                else setCurrentDate(prev => subDays(prev, 1));
+              }}
               className="p-1.5 hover:bg-gray-100 rounded-full"
             >
               <ChevronLeft className="w-5 h-5 text-gray-600" />
             </button>
             <button 
-              onClick={() => setCurrentDate(prev => addMonths(prev, 1))}
+              onClick={() => {
+                if (view === 'month') setCurrentDate(prev => addMonths(prev, 1));
+                else if (view === 'week') setCurrentDate(prev => addWeeks(prev, 1));
+                else setCurrentDate(prev => addDays(prev, 1));
+              }}
               className="p-1.5 hover:bg-gray-100 rounded-full"
             >
               <ChevronRight className="w-5 h-5 text-gray-600" />
