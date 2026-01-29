@@ -86,9 +86,29 @@ const ChatAssistant = () => {
       }
 
       return message;
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI Error:', error);
-      return { role: 'assistant', content: 'Sorry, I encountered an error processing your request. Please check your API key.' };
+      
+      // Handle rate limiting (429)
+      if (error.status === 429) {
+        return { 
+          role: 'assistant', 
+          content: 'I\'m sorry, but I\'m receiving too many requests right now (Rate Limit Reached). Please wait a few seconds and try again.' 
+        };
+      }
+      
+      // Handle other common errors
+      if (error.status === 401) {
+        return { 
+          role: 'assistant', 
+          content: 'It looks like there\'s an issue with the OpenAI API key. Please check your configuration.' 
+        };
+      }
+
+      return { 
+        role: 'assistant', 
+        content: 'Sorry, I encountered an error processing your request. Please try again in a moment.' 
+      };
     }
   };
 
