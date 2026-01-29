@@ -37,8 +37,8 @@ const Sidebar = () => {
         </div>
         
         <div className="grid grid-cols-7 text-center">
-          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-            <span key={day} className="text-[10px] font-medium text-gray-500 py-1">
+          {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, i) => (
+            <span key={i} className="text-[10px] font-medium text-gray-500 py-1">
               {day}
             </span>
           ))}
