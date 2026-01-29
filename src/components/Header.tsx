@@ -4,12 +4,15 @@ import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } fr
 import { useCalendar } from '../context/CalendarContext';
 
 const Header = () => {
-  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut } = useCalendar() as any;
+  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen } = useCalendar() as any;
 
   return (
     <header className="h-16 border-b flex items-center justify-between px-4 shrink-0 bg-white">
       <div className="flex items-center gap-4">
-        <button className="p-2 hover:bg-gray-100 rounded-full">
+        <button 
+          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          className="p-2 hover:bg-gray-100 rounded-full"
+        >
           <Menu className="w-6 h-6 text-gray-600" />
         </button>
         <div className="flex items-center gap-2">

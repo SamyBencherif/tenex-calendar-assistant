@@ -5,9 +5,11 @@ import { useCalendar } from '../context/CalendarContext';
 import CreateEventModal from './CreateEventModal';
 
 const Sidebar = () => {
-  const { currentDate, setCurrentDate } = useCalendar();
+  const { currentDate, setCurrentDate, isSidebarOpen } = useCalendar() as any;
   const [showCreateModal, setShowCreateModal] = useState(false);
   
+  if (!isSidebarOpen) return null;
+
   const monthStart = startOfMonth(currentDate);
   const monthEnd = endOfMonth(monthStart);
   const startDate = startOfWeek(monthStart);

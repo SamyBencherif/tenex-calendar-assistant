@@ -25,6 +25,7 @@ export const CalendarProvider = ({ children }) => {
   const [tokenClient, setTokenClient] = useState(null);
   const [isGapiLoaded, setIsGapiLoaded] = useState(false);
   const [isGisLoaded, setIsGisLoaded] = useState(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -209,7 +210,9 @@ export const CalendarProvider = ({ children }) => {
       deleteEvent,
       isAuthenticated,
       signIn,
-      signOut
+      signOut,
+      isSidebarOpen,
+      setIsSidebarOpen
     }}>
       {children}
     </CalendarContext.Provider>
