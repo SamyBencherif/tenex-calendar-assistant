@@ -55,5 +55,22 @@ export const calendarTools = [
         required: ['id']
       }
     }
+  },
+  {
+    type: 'function',
+    function: {
+      name: 'set_timezone',
+      description: 'Set the target timezone for the calendar',
+      parameters: {
+        type: 'object',
+        properties: {
+          timezone: { 
+            type: 'string', 
+            description: 'The timezone identifier (e.g., "UTC", "America/New_York", "Europe/London", "Asia/Tokyo")' 
+          }
+        },
+        required: ['timezone']
+      }
+    }
   }
 ];

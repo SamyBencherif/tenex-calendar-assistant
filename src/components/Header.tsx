@@ -5,12 +5,14 @@ import { useCalendar } from '../context/CalendarContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
-  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen, events } = useCalendar() as any;
+  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen, events, timezone, setTimezone } = useCalendar() as any;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
+  const settingsRef = useRef<HTMLDivElement>(null);
 
   const filteredEvents = events.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -26,10 +28,24 @@ const Header = () => {
       if (helpRef.current && !helpRef.current.contains(event.target as Node)) {
         setIsHelpOpen(false);
       }
+      if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
+        setIsSettingsOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
+
+  const timezones = [
+    { label: 'Local Time', value: Intl.DateTimeFormat().resolvedOptions().timeZone },
+    { label: 'UTC', value: 'UTC' },
+    { label: 'New York (ET)', value: 'America/New_York' },
+    { label: 'London (GMT)', value: 'Europe/London' },
+    { label: 'Tokyo (JST)', value: 'Asia/Tokyo' },
+    { label: 'Paris (CET)', value: 'Europe/Paris' }
+  ].filter((tz, index, self) => 
+    index === self.findIndex((t) => t.value === tz.value)
+  );
 
   return (
     <header className="h-16 border-b flex items-center justify-between px-4 shrink-0 bg-white relative z-[110]">
@@ -171,9 +187,45 @@ const Header = () => {
               )}
             </AnimatePresence>
           </div>
-          <button className="p-2 hover:bg-gray-100 rounded-full">
-            <Settings className="w-5 h-5 text-gray-600" />
-          </button>
+          <div className="relative" ref={settingsRef}>
+            <button 
+              onClick={() => setIsSettingsOpen(!isSettingsOpen)}
+              className="p-2 hover:bg-gray-100 rounded-full"
+            >
+              <Settings className="w-5 h-5 text-gray-600" />
+            </button>
+            <AnimatePresence>
+              {isSettingsOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="absolute top-full right-0 mt-2 w-64 bg-white rounded-lg shadow-xl border p-4 z-[120]"
+                >
+                  <h3 className="text-sm font-bold text-gray-700 mb-3">Settings</h3>
+                  <div className="flex flex-col gap-2">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Target Timezone
+                    </label>
+                    <select
+                      value={timezone}
+                      onChange={(e) => {
+                        setTimezone(e.target.value);
+                        setIsSettingsOpen(false);
+                      }}
+                      className="w-full border rounded px-2 py-1.5 text-sm outline-none hover:bg-gray-50 cursor-pointer"
+                    >
+                      {timezones.map(tz => (
+                        <option key={tz.value} value={tz.value}>
+                          {tz.label} ({tz.value})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
         
         <select 

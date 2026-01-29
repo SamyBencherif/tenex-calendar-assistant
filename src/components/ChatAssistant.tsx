@@ -6,7 +6,7 @@ import { createOpenAIClient, calendarTools } from '../lib/openai';
 import { format } from 'date-fns';
 
 const ChatAssistant = () => {
-  const { addEvent, deleteEvent, events, updateEvent, isAuthenticated } = useCalendar() as any;
+  const { addEvent, deleteEvent, events, updateEvent, isAuthenticated, timezone, setTimezone } = useCalendar() as any;
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hi! I\'m your calendar assistant. I can help you schedule, delete, or list your events.' }
   ]);
@@ -25,6 +25,7 @@ const ChatAssistant = () => {
   const processAIResponse = async (userInput) => {
     const client = createOpenAIClient();
     const systemPrompt = `You are a helpful calendar assistant. Today is ${format(new Date(), 'eeee, MMMM do, yyyy')}. 
+    The current target timezone is ${timezone}.
     When creating events, use ISO strings for dates. If the user doesn't specify a year, assume it's 2026.
     Current events: ${JSON.stringify(events)}`;
 
@@ -63,6 +64,9 @@ const ChatAssistant = () => {
           } else if (toolCall.function.name === 'delete_event') {
             await deleteEvent(args.id);
             result = `Deleted event with ID: ${args.id}`;
+          } else if (toolCall.function.name === 'set_timezone') {
+            setTimezone(args.timezone);
+            result = `Updated target timezone to: ${args.timezone}`;
           }
 
           toolMessages.push({

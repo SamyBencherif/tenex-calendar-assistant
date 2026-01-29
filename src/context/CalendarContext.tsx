@@ -26,6 +26,7 @@ export const CalendarProvider = ({ children }) => {
   const [isGapiLoaded, setIsGapiLoaded] = useState(false);
   const [isGisLoaded, setIsGisLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
   const fetchEvents = useCallback(async () => {
     try {
@@ -214,9 +215,11 @@ export const CalendarProvider = ({ children }) => {
       isAuthenticated,
       signIn,
       signOut,
-      isSidebarOpen,
-      setIsSidebarOpen
-    }}>
+    isSidebarOpen,
+    setIsSidebarOpen,
+    timezone,
+    setTimezone
+  }}>
       {children}
     </CalendarContext.Provider>
   );
