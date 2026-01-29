@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, X, Loader2, Key } from 'lucide-react';
+import ReactMarkdown from 'react-markdown';
 import { useCalendar } from '../context/CalendarContext';
 import { createOpenAIClient, calendarTools } from '../lib/openai';
 import { format } from 'date-fns';
 
 const ChatAssistant = () => {
-  const { addEvent, deleteEvent, events, updateEvent, isAuthenticated } = useCalendar();
+  const { addEvent, deleteEvent, events, updateEvent, isAuthenticated } = useCalendar() as any;
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hi! I\'m your calendar assistant. I can help you schedule, delete, or list your events.' }
   ]);
@@ -115,12 +116,20 @@ const ChatAssistant = () => {
       <div className="flex-1 overflow-y-auto p-4 flex flex-col gap-4">
         {messages.filter(m => m.role !== 'system' && m.content).map((msg, i) => (
           <div key={i} className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}>
-            <div className={`max-w-[85%] p-3 rounded-2xl text-sm ${
+            <div className={`max-w-[85%] p-3 rounded-2xl text-sm prose prose-sm ${
               msg.role === 'user' 
                 ? 'bg-blue-600 text-white rounded-tr-none' 
                 : 'bg-gray-100 text-gray-800 rounded-tl-none'
             }`}>
-              {msg.content}
+              <ReactMarkdown 
+                components={{
+                  p: ({node, ...props}) => <p className="m-0" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-bold" {...props} />,
+                  em: ({node, ...props}) => <em className="italic" {...props} />,
+                }}
+              >
+                {msg.content}
+              </ReactMarkdown>
             </div>
           </div>
         ))}
