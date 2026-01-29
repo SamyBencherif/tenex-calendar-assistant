@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { addHours, startOfToday } from 'date-fns';
 import { initGapi, listEvents, createEvent as apiCreateEvent, updateEvent as apiUpdateEvent, deleteEvent as apiDeleteEvent } from '../lib/googleCalendar';
+import { setCookie, getCookie, eraseCookie } from '../lib/cookies';
 
 const CalendarContext = createContext();
 
@@ -14,6 +15,7 @@ export const useCalendar = () => {
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+const AUTH_COOKIE_NAME = 'gcal_auth_token';
 
 export const CalendarProvider = ({ children }) => {
   const [events, setEvents] = useState([]);
@@ -40,6 +42,11 @@ export const CalendarProvider = ({ children }) => {
       console.log('Events fetched successfully:', formattedEvents.length);
     } catch (error) {
       console.error('Failed to fetch events:', error);
+      // If unauthorized, clear auth state
+      if (error.status === 401) {
+        setIsAuthenticated(false);
+        eraseCookie(AUTH_COOKIE_NAME);
+      }
     }
   }, []);
 
@@ -78,6 +85,12 @@ export const CalendarProvider = ({ children }) => {
               console.error('GIS error:', response);
               throw response;
             }
+            
+            // Store token in secure cookie
+            if (response.access_token) {
+              setCookie(AUTH_COOKIE_NAME, response.access_token, response.expires_in);
+            }
+            
             setIsAuthenticated(true);
             await fetchEvents();
           },
@@ -85,12 +98,21 @@ export const CalendarProvider = ({ children }) => {
         setTokenClient(client);
         console.log('GIS token client initialized');
 
-        // Check if we have a token already
-        const token = gapi.client.getToken();
-        if (token) {
-          console.log('Existing token found');
+        // Restore token from cookie
+        const savedToken = getCookie(AUTH_COOKIE_NAME);
+        if (savedToken) {
+          console.log('Restoring token from cookie...');
+          gapi.client.setToken({ access_token: savedToken });
           setIsAuthenticated(true);
           await fetchEvents();
+        } else {
+          // Check if we have a token already in gapi (unlikely but possible)
+          const token = gapi.client.getToken();
+          if (token) {
+            console.log('Existing token found in GAPI');
+            setIsAuthenticated(true);
+            await fetchEvents();
+          }
         }
       } catch (error) {
         console.error('Error during Google API initialization:', error);
@@ -117,6 +139,7 @@ export const CalendarProvider = ({ children }) => {
     if (token !== null) {
       google.accounts.oauth2.revoke(token.access_token);
       gapi.client.setToken(null);
+      eraseCookie(AUTH_COOKIE_NAME);
       setIsAuthenticated(false);
       setEvents([]);
       console.log('Signed out successfully');
