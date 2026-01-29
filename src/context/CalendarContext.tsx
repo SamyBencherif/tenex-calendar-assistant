@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { addHours, startOfToday } from 'date-fns';
-import { initGapi, listEvents, createEvent as apiCreateEvent, updateEvent as apiUpdateEvent, deleteEvent as apiDeleteEvent } from '../lib/googleCalendar';
+import { initGapi, listEvents, getUserInfo, createEvent as apiCreateEvent, updateEvent as apiUpdateEvent, deleteEvent as apiDeleteEvent } from '../lib/googleCalendar';
 import { setCookie, getCookie, eraseCookie } from '../lib/cookies';
 
 const CalendarContext = createContext<any>(null);
@@ -14,7 +14,7 @@ export const useCalendar = () => {
 };
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 const AUTH_COOKIE_NAME = 'gcal_auth_token';
 
 export const CalendarProvider = ({ children }) => {
@@ -27,30 +27,44 @@ export const CalendarProvider = ({ children }) => {
   const [isGisLoaded, setIsGisLoaded] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const [timezone, setTimezone] = useState(Intl.DateTimeFormat().resolvedOptions().timeZone);
+  const [user, setUser] = useState<any>(null);
 
   const fetchEvents = useCallback(async () => {
     try {
       console.log('Fetching events from Google Calendar...');
-      const apiEvents = await listEvents();
-      const formattedEvents = apiEvents.map(event => ({
-        id: event.id,
-        title: event.summary,
-        start: event.start.dateTime || event.start.date,
-        end: event.end.dateTime || event.end.date,
-        description: event.description,
-        location: event.location,
-        isAllDay: !!event.start.date,
-        color: 'bg-blue-500' // Default color
-      }));
-      setEvents(formattedEvents);
-      console.log('Events fetched successfully:', formattedEvents.length);
-    } catch (error) {
-      console.error('Failed to fetch events:', error);
-      // If unauthorized, clear auth state
-      if (error.status === 401) {
-        setIsAuthenticated(false);
-        eraseCookie(AUTH_COOKIE_NAME);
+      const [apiEvents, userInfo] = await Promise.allSettled([
+        listEvents(),
+        getUserInfo()
+      ]);
+      
+      if (userInfo.status === 'fulfilled') {
+        setUser(userInfo.value);
+      } else {
+        console.error('Failed to fetch user info:', userInfo.reason);
       }
+
+      if (apiEvents.status === 'fulfilled') {
+        const formattedEvents = apiEvents.value.map(event => ({
+          id: event.id,
+          title: event.summary,
+          start: event.start.dateTime || event.start.date,
+          end: event.end.dateTime || event.end.date,
+          description: event.description,
+          location: event.location,
+          isAllDay: !!event.start.date,
+          color: 'bg-blue-500' // Default color
+        }));
+        setEvents(formattedEvents);
+        console.log('Events fetched successfully:', formattedEvents.length);
+      } else {
+        console.error('Failed to fetch events:', apiEvents.reason);
+        if ((apiEvents.reason as any).status === 401) {
+          setIsAuthenticated(false);
+          eraseCookie(AUTH_COOKIE_NAME);
+        }
+      }
+    } catch (error) {
+      console.error('Unexpected error in fetchEvents:', error);
     }
   }, []);
 
@@ -146,6 +160,7 @@ export const CalendarProvider = ({ children }) => {
       eraseCookie(AUTH_COOKIE_NAME);
       setIsAuthenticated(false);
       setEvents([]);
+      setUser(null);
       console.log('Signed out successfully');
     }
   };
@@ -218,7 +233,8 @@ export const CalendarProvider = ({ children }) => {
     isSidebarOpen,
     setIsSidebarOpen,
     timezone,
-    setTimezone
+    setTimezone,
+    user
   }}>
       {children}
     </CalendarContext.Provider>

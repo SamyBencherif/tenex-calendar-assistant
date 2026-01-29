@@ -1,18 +1,20 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Menu, ChevronLeft, ChevronRight, Search, HelpCircle, Settings, Grid, LogIn, LogOut, X } from 'lucide-react';
+import { Menu, ChevronLeft, ChevronRight, Search, HelpCircle, Settings, Grid, LogIn, LogOut, X, User } from 'lucide-react';
 import { format, addMonths, subMonths, addWeeks, subWeeks, addDays, subDays } from 'date-fns';
 import { useCalendar } from '../context/CalendarContext';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Header = () => {
-  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen, events, timezone, setTimezone } = useCalendar() as any;
+  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut, isSidebarOpen, setIsSidebarOpen, events, timezone, setTimezone, user } = useCalendar() as any;
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const searchRef = useRef<HTMLDivElement>(null);
   const helpRef = useRef<HTMLDivElement>(null);
   const settingsRef = useRef<HTMLDivElement>(null);
+  const profileRef = useRef<HTMLDivElement>(null);
 
   const filteredEvents = events.filter(event => 
     event.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -30,6 +32,9 @@ const Header = () => {
       }
       if (settingsRef.current && !settingsRef.current.contains(event.target as Node)) {
         setIsSettingsOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setIsProfileOpen(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -239,15 +244,7 @@ const Header = () => {
         </select>
 
         <div className="flex items-center gap-2 ml-4">
-          {isAuthenticated ? (
-            <button 
-              onClick={signOut}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded border border-red-200"
-            >
-              <LogOut className="w-4 h-4" />
-              Sign Out
-            </button>
-          ) : (
+          {!isAuthenticated && (
             <button 
               onClick={signIn}
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded border border-blue-200"
@@ -256,8 +253,67 @@ const Header = () => {
               Sign In
             </button>
           )}
-          <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-medium">
-            S
+          
+          <div className="relative" ref={profileRef}>
+            <button 
+              onClick={() => isAuthenticated && setIsProfileOpen(!isProfileOpen)}
+              className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium overflow-hidden transition-transform active:scale-95 ${!isAuthenticated ? 'bg-gray-400 cursor-not-allowed' : 'bg-blue-600 hover:ring-2 ring-blue-300 ring-offset-2'}`}
+            >
+              {user?.picture ? (
+                <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.charAt(0) || <User className="w-4 h-4" />
+              )}
+            </button>
+
+            <AnimatePresence>
+              {isProfileOpen && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                  className="absolute top-full right-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-gray-100 py-4 z-[130] overflow-hidden"
+                >
+                  {user ? (
+                    <div className="px-6 pb-4 border-b border-gray-50 flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-blue-600 flex items-center justify-center text-white text-2xl font-semibold mb-3 overflow-hidden shadow-inner">
+                        {user.picture ? (
+                          <img src={user.picture} alt={user.name} className="w-full h-full object-cover" />
+                        ) : (
+                          user.name.charAt(0)
+                        )}
+                      </div>
+                      <h3 className="text-lg font-bold text-gray-900 leading-tight">{user.name}</h3>
+                      <p className="text-sm text-gray-500 mt-0.5">{user.email}</p>
+                    </div>
+                  ) : (
+                    <div className="px-6 pb-4 border-b border-gray-50 flex flex-col items-center text-center">
+                      <div className="w-16 h-16 rounded-full bg-gray-200 flex items-center justify-center text-gray-400 mb-3 shadow-inner">
+                        <User className="w-8 h-8" />
+                      </div>
+                      <h3 className="text-sm font-medium text-gray-500">Account Settings</h3>
+                    </div>
+                  )}
+
+                  <div className="py-2">
+                    <button
+                      onClick={() => {
+                        signOut();
+                        setIsProfileOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 px-6 py-3 hover:bg-gray-50 transition-colors text-sm font-medium text-red-600"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      Sign out
+                    </button>
+                  </div>
+                  
+                  <div className="px-6 py-3 bg-gray-50 text-[10px] text-gray-400 text-center uppercase tracking-widest font-bold">
+                    Google Calendar Assistant
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </div>
       </div>

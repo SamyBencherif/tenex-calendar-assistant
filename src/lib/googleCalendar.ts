@@ -1,7 +1,7 @@
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID;
 const API_KEY = import.meta.env.VITE_GOOGLE_API_KEY;
 const DISCOVERY_DOC = 'https://www.googleapis.com/discovery/v1/apis/calendar/v3/rest';
-const SCOPES = 'https://www.googleapis.com/auth/calendar.events';
+const SCOPES = 'https://www.googleapis.com/auth/calendar.readonly https://www.googleapis.com/auth/calendar.events https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 
 export const initGapi = () => {
   return new Promise((resolve, reject) => {
@@ -13,7 +13,7 @@ export const initGapi = () => {
       try {
         await gapi.client.init({
           apiKey: API_KEY,
-          discoveryDocs: [DISCOVERY_DOC],
+          discoveryDocs: [DISCOVERY_DOC, 'https://www.googleapis.com/discovery/v1/apis/oauth2/v2/rest'],
         });
         resolve(true);
       } catch (error) {
@@ -82,6 +82,28 @@ export const updateEvent = async (id, event) => {
     return response.result;
   } catch (error) {
     console.error('Error updating event:', error);
+    throw error;
+  }
+};
+
+export const getUserInfo = async () => {
+  try {
+    const token = gapi.client.getToken();
+    if (!token) return null;
+
+    const response = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+      headers: {
+        Authorization: `Bearer ${token.access_token}`,
+      },
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to fetch user info');
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching user info:', error);
     throw error;
   }
 };
