@@ -1,10 +1,10 @@
 import React from 'react';
-import { Menu, ChevronLeft, ChevronRight, Search, HelpCircle, Settings, Grid } from 'lucide-react';
-import { format, addMonths, subMonths, startOfToday } from 'date-fns';
+import { Menu, ChevronLeft, ChevronRight, Search, HelpCircle, Settings, Grid, LogIn, LogOut } from 'lucide-react';
+import { format, addMonths, subMonths } from 'date-fns';
 import { useCalendar } from '../context/CalendarContext';
 
 const Header = () => {
-  const { currentDate, setCurrentDate, view, setView } = useCalendar();
+  const { currentDate, setCurrentDate, view, setView, isAuthenticated, signIn, signOut } = useCalendar();
 
   return (
     <header className="h-16 border-b flex items-center justify-between px-4 shrink-0 bg-white">
@@ -68,6 +68,23 @@ const Header = () => {
         </select>
 
         <div className="flex items-center gap-2 ml-4">
+          {isAuthenticated ? (
+            <button 
+              onClick={signOut}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-red-600 hover:bg-red-50 rounded border border-red-200"
+            >
+              <LogOut className="w-4 h-4" />
+              Sign Out
+            </button>
+          ) : (
+            <button 
+              onClick={signIn}
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded border border-blue-200"
+            >
+              <LogIn className="w-4 h-4" />
+              Sign In
+            </button>
+          )}
           <button className="p-2 hover:bg-gray-100 rounded-full">
             <Grid className="w-5 h-5 text-gray-600" />
           </button>

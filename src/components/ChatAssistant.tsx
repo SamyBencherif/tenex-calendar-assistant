@@ -5,7 +5,7 @@ import { createOpenAIClient, calendarTools } from '../lib/openai';
 import { format } from 'date-fns';
 
 const ChatAssistant = () => {
-  const { addEvent, deleteEvent, events, updateEvent } = useCalendar();
+  const { addEvent, deleteEvent, events, updateEvent, isAuthenticated } = useCalendar();
   const [messages, setMessages] = useState([
     { role: 'assistant', content: 'Hi! I\'m your calendar assistant. I can help you schedule, delete, or list your events.' }
   ]);
@@ -49,12 +49,18 @@ const ChatAssistant = () => {
           let result = '';
 
           if (toolCall.function.name === 'create_event') {
-            const newEvent = addEvent(args);
-            result = `Created event: ${newEvent.title} at ${format(new Date(newEvent.start), 'PPp')}`;
+            const newEvent = await addEvent(args);
+            if (newEvent) {
+              result = `Created event: ${newEvent.title} at ${format(new Date(newEvent.start), 'PPp')}`;
+            } else {
+              result = `Failed to create event. Please make sure you are signed in with Google.`;
+            }
           } else if (toolCall.function.name === 'list_events') {
-            result = `You have ${events.length} events: ${events.map(e => e.title).join(', ')}`;
+            result = isAuthenticated 
+              ? `You have ${events.length} events: ${events.map(e => e.title).join(', ')}`
+              : `I can't list your events because you're not signed in with Google. Please sign in using the button in the header.`;
           } else if (toolCall.function.name === 'delete_event') {
-            deleteEvent(args.id);
+            await deleteEvent(args.id);
             result = `Deleted event with ID: ${args.id}`;
           }
 

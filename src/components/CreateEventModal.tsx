@@ -10,14 +10,14 @@ const CreateEventModal = ({ onClose }) => {
   const [startTime, setStartTime] = useState(format(startOfHour(addHours(new Date(), 1)), 'HH:mm'));
   const [endTime, setEndTime] = useState(format(startOfHour(addHours(new Date(), 2)), 'HH:mm'));
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title) return;
 
     const start = new Date(`${date}T${startTime}:00`).toISOString();
     const end = new Date(`${date}T${endTime}:00`).toISOString();
 
-    addEvent({
+    await addEvent({
       title,
       start,
       end,

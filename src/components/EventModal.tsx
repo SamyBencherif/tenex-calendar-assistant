@@ -11,13 +11,13 @@ const EventModal = ({ event, onClose }) => {
   const start = parseISO(event.start);
   const end = parseISO(event.end);
 
-  const handleDelete = () => {
-    deleteEvent(event.id);
+  const handleDelete = async () => {
+    await deleteEvent(event.id);
     onClose();
   };
 
-  const handleUpdate = () => {
-    updateEvent(event.id, { title });
+  const handleUpdate = async () => {
+    await updateEvent(event.id, { title });
     setIsEditing(false);
   };
 
