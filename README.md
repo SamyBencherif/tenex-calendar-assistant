@@ -1,9 +1,9 @@
 # calendar-assistant
 chat interface for google calendar
 
-## run the application locally
+## Run the application locally
 
-Create an .env file with keys:
+Create an .env file in the project root with keys:
 
 ```
 VITE_OPENAI_API_KEY=...
