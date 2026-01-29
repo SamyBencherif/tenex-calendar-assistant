@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Clock, Users, MapPin, AlignLeft, Globe, Menu } from 'lucide-react';
-import { format, addHours, startOfHour } from 'date-fns';
+import { format, addHours, startOfHour, parse } from 'date-fns';
 import { useCalendar } from '../context/CalendarContext';
 
 const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
@@ -12,18 +12,21 @@ const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
   const [guests, setGuests] = useState('');
   const [location, setLocation] = useState('');
   const [description, setDescription] = useState('');
+  const [isEditingDate, setIsEditingDate] = useState(false);
+  const [isEditingTime, setIsEditingTime] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!title) return;
 
-    const start = new Date(`${date}T${startTime}:00`).toISOString();
-    const end = new Date(`${date}T${endTime}:00`).toISOString();
+    // Ensure we use the date and time correctly
+    const startDateTime = new Date(`${date}T${startTime}:00`);
+    const endDateTime = new Date(`${date}T${endTime}:00`);
 
     await addEvent({
       title,
-      start,
-      end,
+      start: startDateTime.toISOString(),
+      end: endDateTime.toISOString(),
       location,
       description,
       color: 'bg-blue-500'
@@ -62,12 +65,49 @@ const CreateEventModal = ({ onClose }: { onClose: () => void }) => {
               <Clock className="w-5 h-5 text-gray-400 mt-1" />
               <div className="flex flex-col gap-1 flex-1">
                 <div className="flex items-center gap-2 text-sm">
-                  <span className="hover:bg-gray-800 px-2 py-1 rounded cursor-pointer transition-colors">
-                    {format(new Date(date), 'EEEE, MMMM d')}
-                  </span>
-                  <span className="hover:bg-gray-800 px-2 py-1 rounded cursor-pointer transition-colors">
-                    {startTime} – {endTime}
-                  </span>
+                  {isEditingDate ? (
+                    <input
+                      type="date"
+                      value={date}
+                      onChange={(e) => setDate(e.target.value)}
+                      onBlur={() => setIsEditingDate(false)}
+                      autoFocus
+                      className="bg-gray-800 text-gray-200 px-2 py-1 rounded outline-none border border-gray-700 focus:border-blue-400"
+                    />
+                  ) : (
+                    <span 
+                      onClick={() => setIsEditingDate(true)}
+                      className="hover:bg-gray-800 px-2 py-1 rounded cursor-pointer transition-colors"
+                    >
+                      {format(parse(date, 'yyyy-MM-dd', new Date()), 'EEEE, MMMM d')}
+                    </span>
+                  )}
+
+                  {isEditingTime ? (
+                    <div className="flex items-center gap-1">
+                      <input
+                        type="time"
+                        value={startTime}
+                        onChange={(e) => setStartTime(e.target.value)}
+                        className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded outline-none border border-gray-700 focus:border-blue-400 w-20"
+                      />
+                      <span>–</span>
+                      <input
+                        type="time"
+                        value={endTime}
+                        onChange={(e) => setEndTime(e.target.value)}
+                        onBlur={() => setIsEditingTime(false)}
+                        className="bg-gray-800 text-gray-200 px-1 py-0.5 rounded outline-none border border-gray-700 focus:border-blue-400 w-20"
+                      />
+                    </div>
+                  ) : (
+                    <span 
+                      onClick={() => setIsEditingTime(true)}
+                      className="hover:bg-gray-800 px-2 py-1 rounded cursor-pointer transition-colors"
+                    >
+                      {startTime} – {endTime}
+                    </span>
+                  )}
                 </div>
                 <div className="text-xs text-gray-500 flex items-center gap-1 ml-2">
                   <span>Time zone</span>
