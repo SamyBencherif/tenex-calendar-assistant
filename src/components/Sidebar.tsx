@@ -50,6 +50,7 @@ const Sidebar = () => {
                 text-[11px] py-1.5 rounded-full hover:bg-gray-100 transition-colors
                 ${!isSameMonth(day, monthStart) ? 'text-gray-400' : 'text-gray-700'}
                 ${isSameDay(day, new Date()) ? 'bg-blue-600 text-white hover:bg-blue-700' : ''}
+                ${isSameDay(day, currentDate) && !isSameDay(day, new Date()) ? 'bg-blue-100 text-blue-700' : ''}
               `}
             >
               {format(day, 'd')}
