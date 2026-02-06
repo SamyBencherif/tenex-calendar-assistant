@@ -1,7 +1,7 @@
 import OpenAI from 'openai';
 
 const getApiKey = () => {
-  return import.meta.env.VITE_OPENAI_API_KEY || '';
+  return (import.meta as any).env.VITE_OPENAI_API_KEY || '';
 };
 
 export const createOpenAIClient = (apiKey) => {
