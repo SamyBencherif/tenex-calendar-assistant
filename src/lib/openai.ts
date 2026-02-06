@@ -1,7 +1,5 @@
 import OpenAI from 'openai';
 
-// Note: In a real app, you'd use an environment variable or a backend proxy.
-// For this clone, we'll check for an API key in localStorage or prompt the user.
 const getApiKey = () => {
   return import.meta.env.VITE_OPENAI_API_KEY || '';
 };
