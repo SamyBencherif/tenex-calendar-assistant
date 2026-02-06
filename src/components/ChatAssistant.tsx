@@ -7,12 +7,12 @@ import { format } from 'date-fns';
 
 const ChatAssistant = () => {
   const { addEvent, deleteEvent, events, updateEvent, isAuthenticated, timezone, setTimezone } = useCalendar() as any;
-  const [messages, setMessages] = useState([
+  const [messages, setMessages] = useState<any[]>([
     { role: 'assistant', content: 'Hi! I\'m your calendar assistant. I can help you schedule, delete, or list your events.' }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -22,8 +22,8 @@ const ChatAssistant = () => {
     scrollToBottom();
   }, [messages]);
 
-  const processAIResponse = async (userInput) => {
-    const client = createOpenAIClient();
+  const processAIResponse = async (userInput: string) => {
+    const client = createOpenAIClient(undefined);
     const systemPrompt = `You are a helpful calendar assistant. Today is ${format(new Date(), 'eeee, MMMM do, yyyy')}. 
     The current target timezone is ${timezone}.
     When creating events, use ISO strings for dates. If the user doesn't specify a year, assume it's 2026.
@@ -34,17 +34,24 @@ const ChatAssistant = () => {
         model: 'gpt-4o-mini',
         messages: [
           { role: 'system', content: systemPrompt },
-          ...messages.filter(m => m.role !== 'system'),
+          ...messages.filter(m => m.role !== 'system' && m.content).map(m => ({
+            role: m.role,
+            content: m.content
+          })),
           { role: 'user', content: userInput }
         ],
-        tools: calendarTools,
+        tools: calendarTools as any,
         tool_choice: 'auto',
       });
 
       const message = response.choices[0].message;
 
       if (message.tool_calls) {
-        const toolMessages = [...messages, { role: 'user', content: userInput }, message];
+        const toolMessages: any[] = [
+          ...messages.filter(m => m.content).map(m => ({ role: m.role, content: m.content })),
+          { role: 'user', content: userInput },
+          message
+        ];
         
         for (const toolCall of message.tool_calls) {
           const args = JSON.parse(toolCall.function.arguments);
@@ -59,7 +66,7 @@ const ChatAssistant = () => {
             }
           } else if (toolCall.function.name === 'list_events') {
             result = isAuthenticated 
-              ? `You have ${events.length} events: ${events.map(e => e.title).join(', ')}`
+              ? `You have ${events.length} events: ${events.map((e: any) => e.title).join(', ')}`
               : `I can't list your events because you're not signed in with Google. Please sign in using the button in the header.`;
           } else if (toolCall.function.name === 'delete_event') {
             await deleteEvent(args.id);
@@ -72,14 +79,13 @@ const ChatAssistant = () => {
           toolMessages.push({
             tool_call_id: toolCall.id,
             role: 'tool',
-            name: toolCall.function.name,
             content: result,
           });
         }
 
         const finalResponse = await client.chat.completions.create({
           model: 'gpt-4o-mini',
-          messages: [{ role: 'system', content: systemPrompt }, ...toolMessages],
+          messages: [{ role: 'system', content: systemPrompt } as any, ...toolMessages],
         });
 
         return finalResponse.choices[0].message;
@@ -122,7 +128,7 @@ const ChatAssistant = () => {
     setIsLoading(true);
 
     const aiResponse = await processAIResponse(input);
-    setMessages(prev => [...prev, aiResponse]);
+    setMessages(prev => [...prev, aiResponse as any]);
     setIsLoading(false);
   };
 
